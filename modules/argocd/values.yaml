@@ -1,0 +1,32 @@
+global:
+  domain: argocd.example.com
+
+configs:
+
+  params:
+
+    server.insecure: true
+
+server:
+
+  replicas: 2
+
+controller:
+
+  replicas: 1
+
+repoServer:
+
+  replicas: 2
+
+applicationSet:
+
+  replicas: 2
+
+redis:
+
+  enabled: true
+
+dex:
+
+  enabled: false
