@@ -3,10 +3,10 @@ module "global_accelerator" {
   source = "../../modules/global-accelerator"
 
   providers = {
-    aws = aws.primary
+    aws = aws.prod
   }
 
-  accelerator_name = "production-dr"
+  accelerator_name = "production-dr-accelerator"
 
   primary_region = "ap-south-1"
 
