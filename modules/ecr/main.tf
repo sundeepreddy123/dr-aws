@@ -16,9 +16,11 @@ resource "aws_ecr_repository" "repos" {
 }
 //Lifecycle Policy : Keep only the latest 30 images
 
-resource "aws_ecr_lifecycle_policy" "frontend" {
+resource "aws_ecr_lifecycle_policy" "repos" {
+  
+  for_each = aws_ecr_repository.repos
 
-  repository = aws_ecr_repository.repos[each.key].name
+  repository = each.value.name
 
   policy = jsonencode({
 

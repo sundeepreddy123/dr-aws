@@ -14,8 +14,6 @@ module "eks" {
 
   private_subnets = module.vpc.private_subnets
 
-  environment = "Disaster-Recovery"
-
   node_instance_types = [
     "m6i.large"
   ]

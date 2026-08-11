@@ -8,7 +8,7 @@ module "global_accelerator" {
 
   accelerator_name = "production-dr-accelerator"
 
-  primary_region = "ap-south-1"
+  production_region = "ap-south-1"
 
   dr_region = "ap-south-2"
 
