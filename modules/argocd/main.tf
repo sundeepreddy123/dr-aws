@@ -1,6 +1,7 @@
 resource "helm_release" "argocd" {
 
   name = "argocd"
+  namespace = "argocd"
 
   repository = "https://argoproj.github.io/argo-helm"
 
@@ -15,5 +16,8 @@ resource "helm_release" "argocd" {
     file("${path.module}/values.yaml")
 
   ]
+
+  wait = true
+  timeout = "900"
 
 }

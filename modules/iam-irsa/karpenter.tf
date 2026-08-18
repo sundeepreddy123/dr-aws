@@ -21,7 +21,7 @@ resource "aws_iam_role" "karpenter_controller" {
 
           StringEquals = {
 
-            "${local.oidc_url}:sub" = "system:serviceaccount:karpenter:karpenter"
+            "${local.oidc_url}:sub" = "system:serviceaccount:kube-system:karpenter"
 
             "${local.oidc_url}:aud" = "sts.amazonaws.com"
           }
@@ -55,6 +55,27 @@ resource "aws_iam_role" "karpenter_node" {
     ]
   })
 }
+
+data "aws_iam_policy_document" "karpenter_node_assume" {
+
+  statement {
+
+    effect = "Allow"
+
+    actions = ["sts:AssumeRole"]
+
+    principals {
+
+      type        = "Service"
+
+      identifiers = ["ec2.amazonaws.com"]
+
+    }
+
+  }
+
+}
+
 resource "aws_iam_role_policy_attachment" "karpenter_node_worker" {
 
   role = aws_iam_role.karpenter_node.name
@@ -68,3 +89,5 @@ resource "aws_iam_role_policy_attachment" "karpenter_node_ecr" {
 
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
 }
+
+

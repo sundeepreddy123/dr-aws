@@ -1,30 +1,29 @@
-resource "aws_iam_role" "nodegroup" {
 
-  name = "${var.cluster_name}-nodegroup-role"
+data "aws_iam_policy_document" "eks_node_assume" {
 
-  assume_role_policy = jsonencode({
+  statement {
 
-    Version = "2012-10-17"
+    effect = "Allow"
 
-    Statement = [
+    actions = ["sts:AssumeRole"]
 
-      {
+    principals {
 
-        Effect = "Allow"
+      type        = "Service"
 
-        Principal = {
+      identifiers = ["ec2.amazonaws.com"]
 
-          Service = "ec2.amazonaws.com"
+    }
 
-        }
+  }
 
-        Action = "sts:AssumeRole"
+}
 
-      }
+resource "aws_iam_role" "node" {
 
-    ]
+  name               = "${var.cluster_name}-eks-nodegroup"
 
-  })
+  assume_role_policy = data.aws_iam_policy_document.eks_node_assume.json
 
 }
 

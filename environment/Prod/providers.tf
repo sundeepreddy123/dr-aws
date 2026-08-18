@@ -11,7 +11,7 @@ provider "aws" {
     tags = {
       Environment = "Production"
       ManagedBy   = "Terraform"
-      Project     = "EKS-prod"
+      Project     = "sundeep-project"
     }
   }
 }

@@ -1,36 +1,32 @@
 // Security Group for RDS
 resource "aws_security_group" "rds" {
+  name        = "${var.identifier}-sg"
+  description = "Security group for ${var.identifier}"
+  vpc_id      = var.vpc_id
 
-  name   = "${var.identifier}-sg"
-
-  vpc_id = var.vpc_id
-
-  ingress {
-
-    from_port = 5432
-
-    to_port = 5432
-
-    protocol = "tcp"
-
-    cidr_blocks = [
-      "10.0.0.0/8"
-    ]
-  }
-
-  egress {
-
-    from_port = 0
-
-    to_port = 0
-
-    protocol = "-1"
-
-    cidr_blocks = [
-      "0.0.0.0/0"
-    ]
+  tags = {
+    Name = "${var.identifier}-sg"
   }
 }
+
+resource "aws_vpc_security_group_ingress_rule" "rds_from_eks" {
+  security_group_id            = aws_security_group.rds.id
+  referenced_security_group_id = module.eks.cluster_security_group_id
+
+  from_port   = 5432
+  to_port     = 5432
+  ip_protocol = "tcp"
+
+  description = "Allow EKS workloads to access PostgreSQL"
+}
+
+resource "aws_vpc_security_group_egress_rule" "rds" {
+  security_group_id = aws_security_group.rds.id
+
+  cidr_ipv4   = "0.0.0.0/0"
+  ip_protocol = "-1"
+}
+
 // DB Subnet Group
 resource "aws_db_subnet_group" "this" {
 

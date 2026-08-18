@@ -1,63 +1,68 @@
+data "aws_iam_policy_document" "external_secrets_assume" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    principals {
+      type        = "Federated"
+      identifiers = [module.eks.oidc_provider_arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${module.eks.oidc_provider}:sub"
+
+      values = [
+        "system:serviceaccount:external-secrets:external-secrets-sa"
+      ]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${module.eks.oidc_provider}:aud"
+
+      values = ["sts.amazonaws.com"]
+    }
+  }
+}
+
 resource "aws_iam_role" "external_secrets" {
 
   name = "${var.cluster_name}-external-secrets"
 
-  assume_role_policy = jsonencode({
+  assume_role_policy = data.aws_iam_policy_document.external_secrets_assume[0].json
 
-    Version = "2012-10-17"
-
-    Statement = [
-
-      {
-        Effect = "Allow"
-
-        Principal = {
-          Federated = aws_iam_openid_connect_provider.eks.arn
-        }
-
-        Action = "sts:AssumeRoleWithWebIdentity"
-
-        Condition = {
-
-          StringEquals = {
-
-            "${local.oidc_url}:sub" = "system:serviceaccount:external-secrets:external-secrets"
-
-            "${local.oidc_url}:aud" = "sts.amazonaws.com"
-          }
-        }
-      }
-
-    ]
-  })
+  tags = {
+    Name = "${var.cluster_name}-external-secrets"
+  }
 }
+data "aws_iam_policy_document" "external_secrets_policy" {
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:DescribeSecret"
+    ]
+
+    resources = [
+      // "arn:aws:secretsmanager:${var.aws_region}:${var.aws_account_id}:secret:${var.secret_prefix}*"
+      var.external_secrets_secret_arn
+    ]
+  }
+}
+
 resource "aws_iam_policy" "external_secrets" {
 
-  name = "${var.cluster_name}-external-secrets"
+  name   = "${var.cluster_name}-external-secrets"
+  policy = data.aws_iam_policy_document.external_secrets_policy[0].json
 
-  policy = jsonencode({
-
-    Version = "2012-10-17"
-
-    Statement = [
-
-      {
-        Effect = "Allow"
-
-        Action = [
-          "secretsmanager:GetSecretValue",
-          "secretsmanager:DescribeSecret"
-        ]
-
-        Resource = "arn:aws:secretsmanager:${var.aws_region}:${var.aws_account_id}:secret:*"
-      }
-
-    ]
-  })
+  tags = {
+    Name = "${var.cluster_name}-external-secrets"
+  }
 }
+
 resource "aws_iam_role_policy_attachment" "external_secrets" {
-
-  role = aws_iam_role.external_secrets.name
-
-  policy_arn = aws_iam_policy.external_secrets.arn
+  role       = aws_iam_role.external_secrets[0].name
+  policy_arn = aws_iam_policy.external_secrets[0].arn
 }
